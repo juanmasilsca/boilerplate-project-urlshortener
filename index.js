@@ -49,23 +49,22 @@ app.post('/api/shorturl', function (req, res, next) {
   const passedUrl = req.body.url;
   try {
     const newUrl = new URL(passedUrl);
+    dns.lookup(newUrl.hostname, (err, address, family) => {
+      if (err) {
+        res.json({ error: 'Invalid URL' });
+      } else {
+        const indice = urls.findIndex(el => el.original_url === newUrl);
+        if (indice >= 0) {
+          res.json(urls[indice]);
+        }
+        const urlToPush = { original_url: newUrl, short_url: ++idCounter};
+        urls.push(urlToPush)
+        res.json(urlToPush);
+      }
+    });
   } catch (error) {
     res.json({ error: 'Invalid URL' });
   }
-
-  dns.lookup(newUrl.hostname, (err, address, family) => {
-    if (err) {
-      res.json({ error: 'Invalid URL' });
-    } else {
-      const indice = urls.findIndex(el => el.original_url === url);
-      if (indice >= 0) {
-        res.json(urls[indice]);
-      }
-      const urlToPush = { original_url: newUrl, short_url: ++idCounter};
-      urls.push(urlToPush)
-      res.json(urlToPush);
-    }
-  });
 });
 
 
