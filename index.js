@@ -5,28 +5,9 @@ const app = express();
 const bodyParser = require("body-parser");
 const dns = require('dns');
 
-const mongoose = require('mongoose');
-const mongoString = process.env.MONGO_URI;
-mongoose.connect("mongodb+srv://juanmasilsca:1rHXWZE3yS6lMUhB@cluster0.kmccri2.mongodb.net/mongodb-and-mongoose");
-const database = mongoose.connection;
-database.on('error', (error) => {
-  console.error(error);
-});
-
-database.once('connected', () => {
-  console.log('Database Connected');
-});
-
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
-const Schema = mongoose.Schema;
-const urlSchema = new Schema({
-  original_url: { type: String, required: true},
-});
-
-
-const Url = mongoose.model('Url', urlSchema);
 
 app.use(cors());
 
@@ -85,4 +66,3 @@ app.listen(port, function() {
   console.log(`Listening on port ${port}`);
 });
 
-exports.UrlModel = Url;
