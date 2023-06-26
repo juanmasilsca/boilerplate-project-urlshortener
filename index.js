@@ -5,6 +5,8 @@ const app = express();
 const bodyParser = require("body-parser");
 const dns = require('dns');
 
+const URL = require('url').URL;
+
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
@@ -12,6 +14,8 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 
 app.use('/public', express.static(`${process.cwd()}/public`));
+
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -41,24 +45,27 @@ app.get('/api/shorturl/:id', function (req, res) {
   }
 });
 
-app.post('/api/shorturl', function (req, res) {
-  const url = req.body.url;
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    const shortenUrl = url.replace(/^https?:\/\//, '');
-    dns.lookup(shortenUrl, (err, address, family) => {
-      if (err) {
-        res.json({ error: 'invalid url' });
-      }
-    });
-    const indice = urls.findIndex(el => el.original_url === url);
-    if (indice >= 0) {
-      res.json(urls[indice]);
-    }
-    const newUrl = { original_url: url, short_url: ++idCounter};
-    urls.push(newUrl)
-    res.json(newUrl);
+app.post('/api/shorturl', function (req, res, next) {
+  const passedUrl = req.body.url;
+  try {
+    const newUrl = new URL(passedUrl);
+  } catch (error) {
+    res.json({ error: 'Invalid URL' });
   }
-  res.json({ error: 'invalid url' }); 
+
+  dns.lookup(newUrl.hostname, (err, address, family) => {
+    if (err) {
+      res.json({ error: 'Invalid URL' });
+    } else {
+      const indice = urls.findIndex(el => el.original_url === url);
+      if (indice >= 0) {
+        res.json(urls[indice]);
+      }
+      const urlToPush = { original_url: newUrl, short_url: ++idCounter};
+      urls.push(urlToPush)
+      res.json(urlToPush);
+    }
+  });
 });
 
 
